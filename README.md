@@ -1,5 +1,5 @@
 # Custom Card Checker for Project Ignis #
-Rewrite of (the official check suite)[https://github.com/ProjectIgnis/Checker]. Currently only performs basic syntax check just as the original one but more features should be added in the future (as in the original one...).
+Rewrite of [the official check suite](https://github.com/ProjectIgnis/Checker). Currently only performs basic syntax check just as the original one but more features should be added in the future (as in the original one...).
 
 Does not serve as a demo for the API I think.
 
