@@ -37,8 +37,8 @@
 #include <sys/stat.h>
 
 #include <dirent.h>
-#include "ocgcore/ocgapi.h"
-#include "ocgcore/common.h"
+#include "ygopro-core/ocgapi.h"
+#include "ygopro-core/common.h"
 
 bool verbose = false;
 std::string lastScript;
