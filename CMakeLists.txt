@@ -10,6 +10,7 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
+<<<<<<< HEAD
 add_subdirectory(ygopro-core)
 
 include_directories(/usr/include)
@@ -21,6 +22,16 @@ target_sources(script_syntax_check PRIVATE script_syntax_check)
 set_property(TARGET script_syntax_check PROPERTY BUILD_RPATH_USE_ORIGIN TRUE)
 set_property(TARGET script_syntax_check PROPERTY BUILD_RPATH .)
 set_target_properties(script_syntax_check PROPERTIES LINKER_LANGUAGE CXX)
+=======
+add_subdirectory(ocgcore)
+
+add_executable(script_syntax_check)
+target_include_directories(script_syntax_check PUBLIC ocgcore)
+target_link_libraries(script_syntax_check PUBLIC ocgcore)
+target_sources(script_syntax_check PRIVATE script_syntax_check)
+set_property(TARGET script_syntax_check PROPERTY BUILD_RPATH_USE_ORIGIN TRUE)
+set_property(TARGET script_syntax_check PROPERTY BUILD_RPATH .)
+>>>>>>> f5d7b2c377490a259217a3b583cdaaaad3a4622b
 
 set(CLANG_OR_GNU $<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:AppleClang>>)
 set(IGNIS_TESTS_COMPILE_OPTIONS

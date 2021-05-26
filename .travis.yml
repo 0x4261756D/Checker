@@ -1,0 +1,30 @@
+language: cpp
+sudo: required
+os: linux
+dist: bionic
+compiler: gcc
+git:
+  depth: 1
+install: ./ocgcore/travis/install-lua.sh
+script:
+- mkdir -p build && cd build
+- cmake .. -DCMAKE_BUILD_TYPE=Release
+- cmake --build . --config Release --parallel 2 --target script_syntax_check
+- cd ..
+before_deploy:
+- mkdir -p ignis-test
+- cp README.md COPYING ocgcore/LICENSE build/script_syntax_check build/ocgcore/libocgcore.so ignis-test
+- tar czvf ignis-test-bin.tar.gz ignis-test
+deploy:
+- provider: releases
+  skip_cleanup: true
+  api_key: $RELEASE_TOKEN
+  file: ignis-test-bin.tar.gz
+  on:
+    tags: true
+- provider: pages
+  skip_cleanup: true
+  local_dir: ignis-test
+  github_token: $DEPLOY_TOKEN
+  repo: $DEPLOY_REPO
+  target_branch: $DEPLOY_BRANCH
