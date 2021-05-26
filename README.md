@@ -1,31 +1,22 @@
-# Project Ignis card script check suite
+# Custom Card Checker for Project Ignis #
+Rewrite of (the official check suite)[https://github.com/ProjectIgnis/Checker]. Currently only performs basic syntax check just as the original one but more features should be added in the future (as in the original one...).
 
-This runs on Travis CI for our [card script collection](https://github.com/ProjectIgnis/CardScripts). Currently, it only performs a basic syntax check, but more features may be added in the future. 
+Does not serve as a demo for the API I think.
 
-This also serves as a demo for how to use the [redesigned EDOPro ocgcore C API](https://github.com/edo9300/ygopro-core). 
-
-## Script syntax checker
-
+## Script Syntax Checker ##
 Usage:
-```
-script_syntax_check [directories...]
-```
+`script_syntax_check <directory> <card id>`
 
-All specified directories (default cwd if none provided) are searched for card scripts, including to one subdirectory level. The first script found with the name is always used, so do not specify multiple directories with scripts with the same name.
+The specified directory, including subdirectories, is searched for any card- and utility-script files as well as databases. If multiple files with the same name occur the one with the newest editing-date is used.
 
-A basic Lua syntax check is done on scripts on pushes and pull requests. It loads `constant.lua` and `utility.lua` into ocgcore. Then it searches through one subfolder level for files of the form `cX.lua`, where `X` is an integer, loading them into the core as a dummy card with the same passcode. Three-digit passcodes and 151000000 (Action Duel script) are skipped as a workaround.
+All utility scripts are loaded into the core, then all card-scripts are loaded with the same passcodes (## TODO: actually use the stats loaded from the cdbs ##). Three-digit passcodes and 151000000 (Action Duel script) are currently not skipped, should be added?
 
-This catches basic Lua syntax errors like missing `end` statements and runtime errors in `initial_effect` (or a lack of `initial_effect` in a card script).
-
-### Caveats
-
-Does not catch runtime errors in other functions declared within a script unless they are called by `initial_effect` of some other script. This is not a static analyzer and it will not catch incorrect parameters for calls outside of `initial_effect` or any other runtime error.
-
-Currently only works on POSIX due to assuming the POSIX filesystem API. Win32 support could be added trivially but hasn't been a priority. C++17 filesystem was not used because library support is missing from long-term release Linux distros used on Travis CI.
+## Caveats ##
+Currently has the same caveats as the original one (the file system one just because I do not have another System at hand...)
 
 ## Copyright notice and license
 
-Copyright (C) 2020  Kevin Lu.
+Copyright (C) 2020  Kevin Lu, rewritten by 0x4261756D (https://github.com/0x4261756D). (I do not know if this is the proper way to write this)
 ```
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published
