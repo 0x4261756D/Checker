@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-<<<<<<< HEAD
 #include <sqlite3.h>
 
 #include <algorithm>
@@ -243,8 +242,6 @@ void LoadRecursive(std::string root)
     }
 }
 
-
-
 void LogCard([[maybe_unused]] void *payload, OCG_CardData *data)
 {
     if(verbose)
@@ -348,151 +345,4 @@ int main(int argc, char* argv[])
 
     OCG_DestroyDuel(duel);
     return EXIT_SUCCESS;
-=======
-
-#include <cstring>
-#include <fstream>
-#include <functional>
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-#include <vector>
-
-#include <dirent.h>
-
-#include "ocgapi.h"
-#include "common.h"
-
-
-int exitCode = EXIT_SUCCESS;
-std::string lastScript;
-std::vector<std::string> scriptDirectories;
-
-void GetCard([[maybe_unused]] void *payload, uint32_t code, OCG_CardData *card) {
-    card->code = code;
-}
-
-int LoadScript([[maybe_unused]] void *payload, OCG_Duel duel, const char *path) {
-    std::ifstream f;
-    for (const auto& directory : scriptDirectories) {
-        f.open(directory + '/' + path);
-        if (f) {
-            break;
-        }
-    }
-    std::stringstream buf;
-    buf << f.rdbuf();
-    lastScript = path;
-    return buf.str().length() && OCG_LoadScript(duel, buf.str().c_str(), buf.str().length(), path);
-}
-
-void Log([[maybe_unused]] void *payload, const char *string, int type) {
-    std::cerr << type << ": " << string << " from " << lastScript << std::endl;
-    exitCode = EXIT_FAILURE;
-}
-
-void LoadIfExists(OCG_Duel duel, const char* script) {
-    if (LoadScript(nullptr, duel, script)) {
-        std::cout << "Loaded " << script << std::endl;
-    } else {
-        std::cerr << "Failed to load " << script << std::endl;
-    }
-}
-
-void DirectoryWalk(const std::string& directory, const std::function<void(dirent*)>& callback) {
-    auto listing = opendir(directory.c_str());
-    if (!listing) {
-        throw std::runtime_error("Failed to open " + directory);
-    }
-    for (dirent *entry; (entry = readdir(listing)) != nullptr; ) {
-        callback(entry);
-    }
-}
-
-void DirectoryWalkRecursive(const std::string& directory, const std::function<void(dirent*)>& callback, int levels = 0) {
-    DirectoryWalk(directory, [&](dirent* entry) {
-        switch(entry->d_type) {
-        case DT_REG:
-            callback(entry);
-            break;
-        case DT_DIR:
-            if (levels && strlen(entry->d_name) && entry->d_name[0] != '.') {
-                DirectoryWalkRecursive(directory + '/' + entry->d_name, callback, levels - 1);
-            }
-            break;
-        } 
-    });
-}
-
-void DirectoryWalkSubfolders(const std::string& directory, const std::function<void(dirent*)>& callback, int levels = 0) {
-    DirectoryWalk(directory, [&](dirent* entry) {
-        if (entry->d_type == DT_DIR && strlen(entry->d_name) && entry->d_name[0] != '.') {
-            callback(entry);
-            if (levels) {
-                DirectoryWalkSubfolders(directory + '/' + entry->d_name, callback, levels - 1);
-            }
-        }
-    });
-}
-
-int main(int argc, char* argv[]) {
-    if (argc == 1) {
-        scriptDirectories.push_back(".");
-    } else {
-        for (int i = 1; i < argc; i++) {
-            const std::string scriptRoot = argv[i];
-            try {
-                std::cout << "Passed script folder " << scriptRoot << std::endl;
-                scriptDirectories.push_back(scriptRoot);
-                DirectoryWalkSubfolders(scriptRoot, [scriptRoot](dirent* entry) {
-                    std::cout << "Found script folder " << scriptRoot << '/' << entry->d_name << std::endl;
-                    scriptDirectories.push_back(scriptRoot + '/' + entry->d_name);
-                });
-            } catch (const std::runtime_error& e) {
-                std::cerr << e.what() << std::endl;
-                return EXIT_FAILURE;
-            }
-        }
-    }
-
-    OCG_DuelOptions config{};
-    config.cardReader = &GetCard;
-    config.scriptReader = &LoadScript;
-    config.logHandler = &Log;
-    OCG_Duel duel;
-    if (OCG_CreateDuel(&duel, config) != OCG_DUEL_CREATION_SUCCESS) {
-        std::cerr << "Failed to create duel instance!" << std::endl;
-        return EXIT_FAILURE;
-    }
-    try {
-        LoadIfExists(duel, "constant.lua");
-        LoadIfExists(duel, "utility.lua");
-        for (const auto& scriptRoot : scriptDirectories) {
-            DirectoryWalkRecursive(scriptRoot, [duel](dirent* entry) {
-                std::string name(entry->d_name);
-                auto length = name.length();
-                if (length > 0 && name != "constant.lua" && name != "utility.lua" &&
-                    name[0] == 'c' && name.rfind(".lua") == length - 4 && length != 8) {
-                        OCG_NewCardInfo card{};
-                        card.team = card.duelist = card.con = 0;
-                        card.seq = 1;
-                        card.loc = LOCATION_DECK;
-                        card.pos = POS_FACEDOWN_ATTACK;
-                        try {
-                            card.code = std::stoi(name.substr(1, length - 4));
-                            if (card.code == 151000000) return;
-                        } catch (const std::invalid_argument& e) {
-                            return;
-                        }
-                        OCG_DuelNewCard(duel, card);
-                }
-            }, 1);
-        }
-    } catch (const std::runtime_error& e) {
-        std::cerr << e.what() << std::endl;
-        exitCode = EXIT_FAILURE;
-    }
-    OCG_DestroyDuel(duel);
-    return exitCode;
->>>>>>> f5d7b2c377490a259217a3b583cdaaaad3a4622b
 }
