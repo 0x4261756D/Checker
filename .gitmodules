@@ -1,3 +1,4 @@
 [submodule "ygopro-core"]
 	path = ygopro-core
 	url = https://github.com/edo9300/ygopro-core
+	branch = master
