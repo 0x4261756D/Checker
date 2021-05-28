@@ -15,6 +15,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <array>
+#include <cstddef>
 #include <sqlite3.h>
 
 #include <algorithm>
@@ -39,6 +41,7 @@
 #include <dirent.h>
 #include "ygopro-core/ocgapi.h"
 #include "ygopro-core/common.h"
+#include "ygopro-core/ocgapi_types.h"
 
 bool verbose = false;
 std::string lastScript;
@@ -290,6 +293,18 @@ void LoadSpecialFiles(OCG_Duel duel)
     }
 }
 
+void parseFieldQuery(void* query, const uint32_t length)
+{
+    std::vector<uint8_t> buffer(static_cast<std::vector<uint8_t>::size_type>(length));
+    std::memcpy(buffer.data(), query, static_cast<std::size_t>(length));
+    for(auto c = buffer.begin(); c != buffer.end(); ++c)
+        std::cout << c.base() << std::endl;
+    auto cur = buffer.begin();
+    uint32_t options;
+    std::memcpy(&options, cur.base(), 1);
+    std::cout << options << std::endl;
+}
+
 int main(int argc, char* argv[])
 {
     if(argc != 3)
@@ -342,6 +357,9 @@ int main(int argc, char* argv[])
     OCG_StartDuel(duel);
 
     //TODO
+    uint32_t l;
+    auto field = OCG_DuelQueryField(duel, &l);
+    parseFieldQuery(field, l);
 
     OCG_DestroyDuel(duel);
     return EXIT_SUCCESS;
