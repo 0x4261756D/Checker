@@ -293,16 +293,141 @@ void LoadSpecialFiles(OCG_Duel duel)
     }
 }
 
+int64_t getInt64AtIndex(uint8_t* buffer, uint32_t* index, uint32_t length, bool* success)
+{
+    int64_t val;
+    std::memcpy(&val, (buffer + *index), sizeof(val));
+    *index += sizeof(val);
+    *success = *index > length;
+    return val;
+}
+
+int32_t getInt32AtIndex(uint8_t* buffer, uint32_t* index, uint32_t length, bool* success)
+{
+    int32_t val;
+    std::memcpy(&val, (buffer + *index), sizeof(val));
+    *index += sizeof(val);
+    *success = *index > length;
+    return val;
+}
+
+int8_t getInt8AtIndex(uint8_t* buffer, uint32_t* index, uint32_t length, bool* success)
+{
+    int8_t val = *(buffer + *index);
+    *index += sizeof(val);
+    *success = *index > length;
+    return val;
+}
+
 void parseFieldQuery(void* query, const uint32_t length)
 {
-    std::vector<uint8_t> buffer(static_cast<std::vector<uint8_t>::size_type>(length));
-    std::memcpy(buffer.data(), query, static_cast<std::size_t>(length));
-    for(auto c = buffer.begin(); c != buffer.end(); ++c)
-        std::cout << c.base() << std::endl;
-    auto cur = buffer.begin();
-    uint32_t options;
-    std::memcpy(&options, cur.base(), 1);
-    std::cout << options << std::endl;
+    unsigned char* buffer = reinterpret_cast<unsigned char*>(query);
+    bool success = true;
+    uint32_t counter = 0;
+    int32_t options = getInt32AtIndex(buffer, &counter, length, &success);
+    std::cout << "Duel Options: " << options << std::endl;
+    if(success) return;
+    //for each player
+    for(int i = 0; i < 2; ++i)
+    {
+        std::cout << "------PLAYER " << i << "------" << std::endl;
+        int32_t lp = getInt32AtIndex(buffer, &counter, length, &success);
+        std::cout << "LP: " << lp << std::endl;
+        if(success) return;
+        //for each spot in the mzone
+        std::cout << "---MONSTER CARDS---" << std::endl;
+        for(int j = 0; j < 7; ++j)
+        {
+            int8_t exists = getInt8AtIndex(buffer, &counter, length, &success);
+            std::cout << "Card " << j;
+            if(success) return;
+            if(exists)
+            {
+                int8_t position = getInt8AtIndex(buffer, &counter, length, &success);
+                if(success) return;
+                int32_t xyz_mat = getInt32AtIndex(buffer, &counter, length, &success);
+                if(success) return;
+                std::cout << " is at pos " << position << " and has " << xyz_mat << "materials." << std::endl;
+            }
+            else
+            {
+                std::cout << " does not exist" <<std::endl;
+            }
+        }
+        std::cout << "---S/T CARDS---" << std::endl;
+        //for each spot in the szone
+        for(int j = 0; j < 8; ++j)
+        {
+            int8_t exists = getInt8AtIndex(buffer, &counter, length, &success);
+            if(success) return;
+            std::cout << "Card " << j;
+            if(exists)
+            {
+                int8_t position = getInt8AtIndex(buffer, &counter, length, &success);
+                if(success) return;
+                int32_t xyz_mat = getInt32AtIndex(buffer, &counter, length, &success);
+                if(success) return;
+                std::cout << " is at pos " << position << " and has " << xyz_mat << "materials." << std::endl;
+            }
+            else
+            {
+                std::cout << " does not exist" <<std::endl;
+            }
+        }
+        int32_t main_deck = getInt32AtIndex(buffer, &counter, length, &success);
+        if(success) return;
+        std::cout << "Main Deck size: " << main_deck << std::endl;
+        int32_t hand = getInt32AtIndex(buffer, &counter, length, &success);
+        if(success) return;
+        std::cout << "Hand size: " << hand << std::endl;
+        int32_t grave = getInt32AtIndex(buffer, &counter, length, &success);
+        if(success) return;
+        std::cout << "Grave size: " << grave << std::endl;
+        int32_t remove = getInt32AtIndex(buffer, &counter, length, &success);
+        if(success) return;
+        std::cout << "Banish Pile size: " << remove << std::endl;
+        int32_t extra_deck = getInt32AtIndex(buffer, &counter, length, &success);
+        if(success) return;
+        std::cout << "Extra Deck size: " << extra_deck << std::endl;
+        int32_t extra_p_count = getInt32AtIndex(buffer, &counter, length, &success);
+        if(success) return;
+        std::cout << "Faceup Extra Deck count: " << extra_p_count << std::endl;
+    }
+    std::cout << "------CHAIN------" <<std::endl;
+    int32_t chain_size = getInt32AtIndex(buffer, &counter, length, &success);
+    if(success) return;
+    std::cout << "Chain size: " << chain_size << std::endl;
+    for(int32_t i = 0; i < chain_size; i++)
+    {
+        int32_t triggering_effect = getInt32AtIndex(buffer, &counter, length, &success);
+        if(success) return;
+        std::cout << "Triggering effect: " << triggering_effect << std::endl;
+        int8_t controller = getInt8AtIndex(buffer, &counter, length, &success);
+        if(success) return;
+        std::cout << "Controller: " << controller << std::endl;
+        int8_t location = getInt8AtIndex(buffer, &counter, length, &success);
+        if(success) return;
+        std::cout << "Location: " << location << std::endl;
+        int32_t sequence = getInt32AtIndex(buffer, &counter, length, &success);
+        if(success) return;
+        std::cout << "Sequence: " << sequence << std::endl;
+        int32_t position = getInt32AtIndex(buffer, &counter, length, &success);
+        if(success) return;
+        std::cout << "Position: " << position << std::endl;
+        int8_t triggering_controller = getInt8AtIndex(buffer, &counter, length, &success);
+        if(success) return;
+        std::cout << "Triggering Controller: " << triggering_controller << std::endl;
+        int8_t triggering_location = getInt8AtIndex(buffer, &counter, length, &success);
+        if(success) return;
+        std::cout << "Triggering Location: " << triggering_location << std::endl;
+        int32_t triggering_sequence = getInt32AtIndex(buffer, &counter, length, &success);
+        if(success) return;
+        std::cout << "Triggering Sequence: " << triggering_sequence << std::endl;
+        int64_t description = getInt64AtIndex(buffer, &counter, length, &success);
+        if(success) return;
+        std::cout << "Description: " << description << std::endl;
+    }
+    std::cout << counter << ":" << length << std::endl;
 }
 
 int main(int argc, char* argv[])
@@ -318,6 +443,14 @@ int main(int argc, char* argv[])
     config.scriptReader = &ScriptLoad;
     config.logHandler = &Log;
     config.cardReaderDone = &LogCard;
+    OCG_Player team1;
+    team1.startingLP = 12345678;
+    team1.startingDrawCount = 0;
+    OCG_Player team2;
+    team2.startingLP = 15;
+    team2.startingDrawCount = 0;
+    config.team1 = team1;
+    config.team2 = team2;
     OCG_Duel duel;
     if(OCG_CreateDuel(&duel, config) != OCG_DUEL_CREATION_SUCCESS)
     {
