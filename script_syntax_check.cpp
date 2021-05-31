@@ -53,6 +53,15 @@ const std::string prio[] = {"constant.lua", "utility.lua"};
 void GetCard([[maybe_unused]] void *payload, uint32_t code, OCG_CardData *card) 
 {
     card->code = code;
+    for(auto i = cardData.begin(); i != cardData.end(); ++i)
+    {
+        if(i->code == code)
+        {
+            card = i.base();
+            return;
+        }
+    }
+    std::cout << "couldn't find " << code << "in card_data" << std::endl;
 }
 
 void Log([[maybe_unused]] void *payload, const char *string, int type) 
@@ -247,7 +256,7 @@ void LoadRecursive(std::string root)
 
 void LogCard([[maybe_unused]] void *payload, OCG_CardData *data)
 {
-    if(verbose)
+    //if(verbose)
     std::cout << "alias: " << data->alias << std::endl << "attack: " << data->attack
     << std::endl << "attribute: " << data->attribute << std::endl << "code: " << data->code
     << std::endl << "setcodes: " << data->setcodes << std::endl << "defense: " << data->defense
@@ -302,34 +311,35 @@ template<typename T> T getAtPos(uint8_t* buffer, uint32_t* index, uint32_t lengt
     return val;
 }
 
+// used ocgapi.cpp OCG_DuelQueryField as reference
 void parseFieldQuery(void* query, const uint32_t length)
 {
     unsigned char* buffer = reinterpret_cast<unsigned char*>(query);
-    bool success = true;
+    bool failure = false;
     uint32_t counter = 0;
-    int32_t options = getAtPos<uint32_t>(buffer, &counter, length, &success);
+    int32_t options = getAtPos<uint32_t>(buffer, &counter, length, &failure);
     std::cout << "Duel Options: " << options << std::endl;
-    if(success) return;
+    if(failure) return;
     //for each player
     for(int i = 0; i < 2; ++i)
     {
         std::cout << "------PLAYER " << i << "------" << std::endl;
-        int32_t lp = getAtPos<uint32_t>(buffer, &counter, length, &success);
+        int32_t lp = getAtPos<uint32_t>(buffer, &counter, length, &failure);
         std::cout << "LP: " << lp << std::endl;
-        if(success) return;
+        if(failure) return;
         //for each spot in the mzone
         std::cout << "---MONSTER CARDS---" << std::endl;
         for(int j = 0; j < 7; ++j)
         {
-            int8_t exists = getAtPos<uint8_t>(buffer, &counter, length, &success);
+            int8_t exists = getAtPos<uint8_t>(buffer, &counter, length, &failure);
             std::cout << "Card " << j;
-            if(success) return;
+            if(failure) return;
             if(exists)
             {
-                int8_t position = getAtPos<uint8_t>(buffer, &counter, length, &success);
-                if(success) return;
-                int32_t xyz_mat = getAtPos<uint32_t>(buffer, &counter, length, &success);
-                if(success) return;
+                int8_t position = getAtPos<uint8_t>(buffer, &counter, length, &failure);
+                if(failure) return;
+                int32_t xyz_mat = getAtPos<uint32_t>(buffer, &counter, length, &failure);
+                if(failure) return;
                 std::cout << " is at pos " << position << " and has " << xyz_mat << "materials." << std::endl;
             }
             else
@@ -341,15 +351,15 @@ void parseFieldQuery(void* query, const uint32_t length)
         //for each spot in the szone
         for(int j = 0; j < 8; ++j)
         {
-            int8_t exists = getAtPos<uint8_t>(buffer, &counter, length, &success);
-            if(success) return;
+            int8_t exists = getAtPos<uint8_t>(buffer, &counter, length, &failure);
+            if(failure) return;
             std::cout << "Card " << j;
             if(exists)
             {
-                int8_t position = getAtPos<uint8_t>(buffer, &counter, length, &success);
-                if(success) return;
-                int32_t xyz_mat = getAtPos<uint32_t>(buffer, &counter, length, &success);
-                if(success) return;
+                int8_t position = getAtPos<uint8_t>(buffer, &counter, length, &failure);
+                if(failure) return;
+                int32_t xyz_mat = getAtPos<uint32_t>(buffer, &counter, length, &failure);
+                if(failure) return;
                 std::cout << " is at pos " << position << " and has " << xyz_mat << "materials." << std::endl;
             }
             else
@@ -357,60 +367,152 @@ void parseFieldQuery(void* query, const uint32_t length)
                 std::cout << " does not exist" <<std::endl;
             }
         }
-        int32_t main_deck = getAtPos<uint32_t>(buffer, &counter, length, &success);
-        if(success) return;
+        int32_t main_deck = getAtPos<uint32_t>(buffer, &counter, length, &failure);
+        if(failure) return;
         std::cout << "Main Deck size: " << main_deck << std::endl;
-        int32_t hand = getAtPos<uint32_t>(buffer, &counter, length, &success);
-        if(success) return;
+        int32_t hand = getAtPos<uint32_t>(buffer, &counter, length, &failure);
+        if(failure) return;
         std::cout << "Hand size: " << hand << std::endl;
-        int32_t grave = getAtPos<uint32_t>(buffer, &counter, length, &success);
-        if(success) return;
+        int32_t grave = getAtPos<uint32_t>(buffer, &counter, length, &failure);
+        if(failure) return;
         std::cout << "Grave size: " << grave << std::endl;
-        int32_t remove = getAtPos<uint32_t>(buffer, &counter, length, &success);
-        if(success) return;
+        int32_t remove = getAtPos<uint32_t>(buffer, &counter, length, &failure);
+        if(failure) return;
         std::cout << "Banish Pile size: " << remove << std::endl;
-        int32_t extra_deck = getAtPos<uint32_t>(buffer, &counter, length, &success);
-        if(success) return;
+        int32_t extra_deck = getAtPos<uint32_t>(buffer, &counter, length, &failure);
+        if(failure) return;
         std::cout << "Extra Deck size: " << extra_deck << std::endl;
-        int32_t extra_p_count = getAtPos<uint32_t>(buffer, &counter, length, &success);
-        if(success) return;
+        int32_t extra_p_count = getAtPos<uint32_t>(buffer, &counter, length, &failure);
+        if(failure) return;
         std::cout << "Faceup Extra Deck count: " << extra_p_count << std::endl;
     }
     std::cout << "------CHAIN------" <<std::endl;
-    int32_t chain_size = getAtPos<uint32_t>(buffer, &counter, length, &success);
-    if(success) return;
+    int32_t chain_size = getAtPos<uint32_t>(buffer, &counter, length, &failure);
+    if(failure) return;
     std::cout << "Chain size: " << chain_size << std::endl;
     for(int32_t i = 0; i < chain_size; i++)
     {
-        int32_t triggering_effect = getAtPos<uint32_t>(buffer, &counter, length, &success);
-        if(success) return;
+        int32_t triggering_effect = getAtPos<uint32_t>(buffer, &counter, length, &failure);
+        if(failure) return;
         std::cout << "Triggering effect: " << triggering_effect << std::endl;
-        int8_t controller = getAtPos<uint8_t>(buffer, &counter, length, &success);
-        if(success) return;
+        int8_t controller = getAtPos<uint8_t>(buffer, &counter, length, &failure);
+        if(failure) return;
         std::cout << "Controller: " << controller << std::endl;
-        int8_t location = getAtPos<uint8_t>(buffer, &counter, length, &success);
-        if(success) return;
+        int8_t location = getAtPos<uint8_t>(buffer, &counter, length, &failure);
+        if(failure) return;
         std::cout << "Location: " << location << std::endl;
-        int32_t sequence = getAtPos<uint32_t>(buffer, &counter, length, &success);
-        if(success) return;
+        int32_t sequence = getAtPos<uint32_t>(buffer, &counter, length, &failure);
+        if(failure) return;
         std::cout << "Sequence: " << sequence << std::endl;
-        int32_t position = getAtPos<uint32_t>(buffer, &counter, length, &success);
-        if(success) return;
+        int32_t position = getAtPos<uint32_t>(buffer, &counter, length, &failure);
+        if(failure) return;
         std::cout << "Position: " << position << std::endl;
-        int8_t triggering_controller = getAtPos<uint8_t>(buffer, &counter, length, &success);
-        if(success) return;
+        int8_t triggering_controller = getAtPos<uint8_t>(buffer, &counter, length, &failure);
+        if(failure) return;
         std::cout << "Triggering Controller: " << triggering_controller << std::endl;
-        int8_t triggering_location = getAtPos<uint8_t>(buffer, &counter, length, &success);
-        if(success) return;
+        int8_t triggering_location = getAtPos<uint8_t>(buffer, &counter, length, &failure);
+        if(failure) return;
         std::cout << "Triggering Location: " << triggering_location << std::endl;
-        int32_t triggering_sequence = getAtPos<uint32_t>(buffer, &counter, length, &success);
-        if(success) return;
+        int32_t triggering_sequence = getAtPos<uint32_t>(buffer, &counter, length, &failure);
+        if(failure) return;
         std::cout << "Triggering Sequence: " << triggering_sequence << std::endl;
-        int64_t description = getAtPos<uint64_t>(buffer, &counter, length, &success);
-        if(success) return;
+        int64_t description = getAtPos<uint64_t>(buffer, &counter, length, &failure);
+        if(failure) return;
         std::cout << "Description: " << description << std::endl;
     }
     std::cout << counter << ":" << length << std::endl;
+}
+
+uint32_t getInSize(uint8_t* buffer, uint32_t* index, uint32_t length, bool* success, uint16_t size)
+{
+    uint32_t val;
+    std::memcpy(&val, buffer + *index, size);
+    *index += size;
+    *success = *index > length;
+    return val;
+}
+
+// used card.cpp card::get_infos as reference
+void parseQuery(void* query, const uint32_t length)
+{
+    uint8_t* buffer = reinterpret_cast<uint8_t*>(query);
+    bool failure = true;
+    uint32_t counter = 0;
+    OCG_CardData card;
+    uint32_t position;
+    uint32_t rank;
+    uint32_t base_attack, base_defense;
+    uint32_t reason;
+    uint32_t cover;
+    while(counter < length)
+    {
+        uint16_t size = getAtPos<uint16_t>(buffer, &counter, length, &failure) - sizeof(uint32_t);
+        if(failure) return;
+        uint32_t query_type = getAtPos<uint32_t>(buffer, &counter, length, &failure);
+        if(failure) return;
+        uint64_t value = getInSize(buffer, &counter, length, &failure, size);
+        if(failure) return;
+        if(size != sizeof(uint32_t))
+        {
+            std::cout << "Size not uint32_t" << std::endl;
+        }
+        std::cout << size << ", " << query_type << ", " << value << std::endl;
+        switch (query_type) 
+        {
+            case QUERY_CODE:
+                card.type = value;
+            break;
+	        case QUERY_POSITION:
+                position = value;
+            break;
+	        case QUERY_ALIAS:
+                card.alias = value;
+            break;
+	        case QUERY_TYPE:
+                card.type = value;
+            break;
+	        case QUERY_LEVEL:
+                card.level = value;
+            break;
+	        case QUERY_RANK:
+                rank = value;
+            break;
+	        case QUERY_ATTRIBUTE:
+                card.attribute = value;
+            break;
+	        case QUERY_RACE:
+                card.race = value;
+            break;
+	        case QUERY_ATTACK:
+                card.attack = value;
+            break;
+	        case QUERY_DEFENSE:
+                card.defense = value;
+            break;
+	        case QUERY_BASE_ATTACK:
+                base_attack = value;
+            break;
+	        case QUERY_BASE_DEFENSE:
+                base_defense = value;
+            break;
+	        case QUERY_REASON:
+                reason = value;
+            break;
+	        case QUERY_COVER:
+                cover = value;
+            break;
+            
+        }         
+    }
+    std::cout << "------CARD------" << std::endl;
+    LogCard(nullptr, &card);
+    std::cout << "Additional data: " << std::endl;
+    std::cout << "Position: " << position << std::endl;
+    std::cout << "Rank: " << rank << std::endl;
+    std::cout << "Base Attack: " << base_attack << std::endl;
+    std::cout << "Base Defense: " << base_defense << std::endl;
+    std::cout << "Reason: " << reason << std::endl;
+    std::cout << "Cover: " << cover << std::endl;
 }
 
 int main(int argc, char* argv[])
@@ -476,7 +578,17 @@ int main(int argc, char* argv[])
     uint32_t l;
     auto field = OCG_DuelQueryField(duel, &l);
     parseFieldQuery(field, l);
-
+    OCG_QueryInfo info;
+    info.loc = LOCATION_HAND;
+    info.seq = 0;
+    info.flags = 0xfffffff;
+    auto card = OCG_DuelQuery(duel, &l, info);
+    std::cout << l << std::endl;
+    parseQuery(card, l);
+    std::cout << "Log" <<std::endl;
+    OCG_CardData data;
+    GetCard(nullptr, std::stoi(argv[2]), &data);
+    LogCard(nullptr, &data);
     OCG_DestroyDuel(duel);
     return EXIT_SUCCESS;
 }
