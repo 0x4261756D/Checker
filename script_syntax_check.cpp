@@ -674,8 +674,7 @@ int main(int argc, char* argv[])
 	}
 	OCG_StartDuel(duel);
 
-	//TODO
-	uint32_t l;
+/* 	uint32_t l;
 	auto field = OCG_DuelQueryField(duel, &l);
 	parseFieldQuery(field, l);
 	OCG_QueryInfo info;
@@ -688,7 +687,11 @@ int main(int argc, char* argv[])
 	std::cout << "Log" <<std::endl;
 	OCG_CardData data;
 	GetCard(nullptr, std::stoi(argv[2]), &data);
-	LogCard(nullptr, &data);
+	LogCard(nullptr, &data); */
+
+	int flag = OCG_DuelProcess(duel);
+	std::cout << flag << std::endl;
+
 	OCG_DestroyDuel(duel);
 	return EXIT_SUCCESS;
 }
