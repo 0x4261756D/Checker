@@ -466,11 +466,11 @@ void parseQuery(void* query, const uint32_t length)
 		if(failure) return;
 		uint32_t query_type = getAtPos<uint32_t>(buffer, &counter, length, &failure);
 		if(failure) return;
-		std::cout << size << ", " << query_type << ", " << std::endl;
+		std::cout << size << ", " << query_type << std::endl;
 		switch (query_type) 
 		{
 			case QUERY_CODE:
-				card.type = getInSize(buffer, &counter, length, &failure, size);
+				card.code = getInSize(buffer, &counter, length, &failure, size);
 			break;
 			case QUERY_POSITION:
 				position = getInSize(buffer, &counter, length, &failure, size);
