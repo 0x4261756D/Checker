@@ -674,21 +674,6 @@ int main(int argc, char* argv[])
 	}
 	OCG_StartDuel(duel);
 
-/* 	uint32_t l;
-	auto field = OCG_DuelQueryField(duel, &l);
-	parseFieldQuery(field, l);
-	OCG_QueryInfo info;
-	info.loc = LOCATION_HAND;
-	info.seq = 0;
-	info.flags = 0xfffffff;
-	auto card = OCG_DuelQuery(duel, &l, info);
-	std::cout << l << std::endl;
-	parseQuery(card, l);
-	std::cout << "Log" <<std::endl;
-	OCG_CardData data;
-	GetCard(nullptr, std::stoi(argv[2]), &data);
-	LogCard(nullptr, &data); */
-
 	int flag = OCG_DuelProcess(duel);
 	std::cout << flag << std::endl;
 
