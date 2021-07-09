@@ -2,3 +2,6 @@
 	path = ygopro-core
 	url = https://github.com/edo9300/ygopro-core
 	branch = master
+[submodule "ygopen"]
+	path = ygopen
+	url = https://github.com/DyXel/ygopen
